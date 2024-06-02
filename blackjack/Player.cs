@@ -1,37 +1,36 @@
 ﻿using System.Text;
 
-namespace Blackjack
+namespace Blackjack;
+
+class Player
 {
-    class Player
+    public Hand hand {  get; set; }
+
+    public Player()
     {
-        public Hand hand;
+        hand = new Hand();
+    }
 
-        public Player()
+    public string MakeChoice()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.Append("Choose action (Hit [");
+        stringBuilder.AppendJoin(", ", Constants.HitChoices);
+        stringBuilder.Append("] or Stand [");
+        stringBuilder.AppendJoin(", ", Constants.StandChoices);
+        stringBuilder.Append("]):");
+
+        Console.WriteLine(stringBuilder.ToString());
+
+        string? choice = Console.ReadLine();
+        string[] validChoices = Constants.HitChoices.Concat(Constants.StandChoices).ToArray();
+
+        while (choice == null || !validChoices.Contains(choice))
         {
-            hand = new Hand();
+            choice = Console.ReadLine();
         }
 
-        public string MakeChoice()
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            stringBuilder.Append("Choose action (Hit [");
-            stringBuilder.AppendJoin(", ", Constants.HitChoices);
-            stringBuilder.Append("] or Stand [");
-            stringBuilder.AppendJoin(", ", Constants.StandChoices);
-            stringBuilder.Append("]):");
-
-            Console.WriteLine(stringBuilder.ToString());
-
-            string? choice = Console.ReadLine();
-            string[] validChoices = Constants.HitChoices.Concat(Constants.StandChoices).ToArray();
-
-            while (choice == null || !validChoices.Contains(choice))
-            {
-                choice = Console.ReadLine();
-            }
-
-            return choice;
-        }
+        return choice;
     }
 }

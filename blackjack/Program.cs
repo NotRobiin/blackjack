@@ -1,43 +1,41 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace Blackjack
+namespace Blackjack;
+
+class Program
 {
-    class Program
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    private static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    static void Main(string[] args)
     {
-        [DllImport("kernel32.dll", ExactSpelling = true)]
-        private static extern IntPtr GetConsoleWindow();
+        IntPtr handle = GetConsoleWindow();
 
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        ShowWindow(handle, 3);
 
-        static void Main(string[] args)
+        Game game = new Game();
+        bool keepPlaying = true;
+
+        while (keepPlaying)
         {
-            IntPtr handle = GetConsoleWindow();
+            Console.Clear();
+            game.Start();
 
-            ShowWindow(handle, 3);
+            Console.WriteLine("Keep playing (Y) or exit (N)?:");
 
-            Game game = new Game();
-            bool keepPlaying = true;
+            string? choice = Console.ReadLine();
 
-            while (keepPlaying)
+            if (!String.IsNullOrEmpty(choice) && choice.ToLower() == "y")
             {
-                Console.Clear();
-                game.Start();
-
-                Console.WriteLine("Keep playing (Y) or exit (N)?:");
-
-                string? choice = Console.ReadLine();
-
-                if (choice != null && choice.ToLower() == "y")
-                {
-                    game.Restart();
-                    keepPlaying = true;
-                }
-                else
-                {
-                    keepPlaying = false;
-                }
+                game.Restart();
+                keepPlaying = true;
+            }
+            else
+            {
+                keepPlaying = false;
             }
         }
     }

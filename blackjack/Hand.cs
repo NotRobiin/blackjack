@@ -1,76 +1,60 @@
-﻿namespace Blackjack
+﻿namespace Blackjack;
+
+internal class Hand
 {
-    internal class Hand
+    private List<Card> _hand { get; set; }
+
+    public Hand() => _hand = [];
+
+    public void AddCard(Card card) => _hand.Add(card);
+
+    public List<Card> GetCards() => _hand;
+
+    public Card GetLastCard() => _hand[_hand.Count - 1];
+
+    public bool IsWin() => CalculateScore() == Constants.BlackJack;
+
+    public bool IsBust() => CalculateScore() > Constants.BlackJack;
+
+    public int CalculateScore(bool includeInvisible = true)
     {
-        private List<Card> hand { get; set; }
+        int aceCount = _hand.Count(card => (includeInvisible || card.Visible) && card.Value == "A");
+        int score = _hand.Where(card => includeInvisible || card.Visible)
+                        .Where(card => card.Value != "A")
+                        .Sum(card => Constants.CardIntValues[card.Value]);
 
-        public Hand() => hand = [];
-
-        public void AddCard(Card card) => hand.Add(card);
-
-        public List<Card> GetCards() => hand;
-
-        public Card GetLastCard() => hand[hand.Count - 1];
-
-        public bool IsWin() => CalculateScore() == 21;
-
-        public bool IsBust() => CalculateScore() > 21;
-
-        private bool HasInvisibleCard() => hand.Count(card => !card.Visible) > 0;
-
-        private int GetVisibleAcesCount() => hand.Count(card => card.Value == "A" && card.Visible);
-
-        public int CalculateScore(bool includeInvisible = true)
+        // Add Aces
+        for (int i = 0; i < aceCount; i++)
         {
-            int score = 0;
-            int aceCount = 0;
-
-            foreach (var card in hand)
-            {
-                if (!includeInvisible && !card.Visible)
-                {
-                    continue;
-                }
-
-                if (card.Value == "A")
-                {
-                    aceCount++;
-
-                    continue;
-                }
-
-                score += Constants.CardIntValues[card.Value];
-            }
-
-            // Add Aces
-            for (int i = 0; i < aceCount; i++)
-            {
-                score += (score + 11 <= 21 ? 11 : 1);
-            }
-
-            return score;
+            score += (score + Constants.AceHigh <= Constants.BlackJack ? Constants.AceHigh : Constants.AceLow);
         }
 
-        public string FormatedScore(bool includeInvisible = true)
-        {
-            int score = CalculateScore(includeInvisible);
+        return score;
+    }
 
-            if (score == 21 && hand.Count == 2)
-            {
-                return "BLACKJACK";
-            }
-            else if (hand.Count == 2 && HasInvisibleCard() && hand.First().Value == "A")
-            {
-                return "1/11";
-            }
-            else if (GetVisibleAcesCount() > 0 && score + 10 <= 21)
-            {
-                return $"{score}/{score + 10}";
-            }
-            else
-            {
-                return score.ToString();
-            }
+    public string FormatedScore(bool includeInvisible = true)
+    {
+        int score = CalculateScore(includeInvisible);
+
+        if (score == Constants.BlackJack && _hand.Count == 2)
+        {
+            return "BLACKJACK";
+        }
+        else if (_hand.Count == 2 && HasInvisibleCard() && _hand.First().Value == "A")
+        {
+            return $"{Constants.AceLow}/{Constants.AceHigh}";
+        }
+        else if (GetVisibleAcesCount() > 0 && score + Constants.AceHigh - 1 <= Constants.BlackJack)
+        {
+            return $"{score}/{score + Constants.AceHigh - 1}";
+        }
+        else
+        {
+            return score.ToString();
         }
     }
+
+    private bool HasInvisibleCard() => _hand.Count(card => !card.Visible) > 0;
+
+    private int GetVisibleAcesCount() => _hand.Count(card => card.Value == "A" && card.Visible);
 }
