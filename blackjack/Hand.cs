@@ -2,8 +2,6 @@
 
 internal class Hand
 {
-    private List<Card> _hand { get; set; }
-
     public Hand() => _hand = [];
 
     public void AddCard(Card card) => _hand.Add(card);
@@ -16,9 +14,13 @@ internal class Hand
 
     public bool IsBust() => CalculateScore() > Constants.BlackJack;
 
+    private List<Card> _hand;
+
     public int CalculateScore(bool includeInvisible = true)
     {
-        int aceCount = _hand.Count(card => (includeInvisible || card.Visible) && card.Value == "A");
+        int aceCount = includeInvisible
+            ? _hand.Count(card => (card.Visible) && card.Value == "A")
+            : _hand.Count(card => card.Value == "A");
         int score = _hand.Where(card => includeInvisible || card.Visible)
                         .Where(card => card.Value != "A")
                         .Sum(card => Constants.CardIntValues[card.Value]);
