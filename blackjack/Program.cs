@@ -1,20 +1,10 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Blackjack;
+﻿namespace Blackjack;
 
 class Program
 {
-    [DllImport("kernel32.dll", ExactSpelling = true)]
-    private static extern IntPtr GetConsoleWindow();
-
-    [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
     static void Main(string[] args)
     {
-        IntPtr handle = GetConsoleWindow();
-
-        ShowWindow(handle, 3);
+        Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
 
         Game game = new Game();
         bool keepPlaying = true;
