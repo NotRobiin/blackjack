@@ -2,6 +2,27 @@
 
 class Constants
 {
+    public enum WinResult
+    {
+        None,
+        Player,
+        Dealer,
+        Push
+    };
+
+    public enum WinScenario
+    {
+        Regular,
+        DoubleDown,
+        Reveal
+    };
+
+    public enum Turn
+    {
+        Player,
+        Dealer
+    };
+    
     public static readonly string[] CardSuits = { "Hearts", "Diamonds", "Clubs", "Spades" };
     public static readonly string[] CardValues = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
     public static readonly Dictionary<string, int> CardIntValues = new Dictionary<string, int>
@@ -21,6 +42,14 @@ class Constants
     };
     public static readonly string[] HitChoices = ["h", "hit"];
     public static readonly string[] StandChoices = ["s", "stand"];
+    public static readonly string[] DoubleDownChoices = ["d", "double", "dd"];
+
+    public static readonly Dictionary<WinResult, string> ResultMessages = new Dictionary<WinResult, string>
+    {
+        { WinResult.Player, "[PLAYER WINS]" },
+        { WinResult.Dealer, "[DEALER WINS]" },
+        { WinResult.Push, "[PUSH]" }
+    };
 
     public const int DecksAmount = 1;
 

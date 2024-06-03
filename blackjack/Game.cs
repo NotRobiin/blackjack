@@ -6,20 +6,20 @@ class Game
     private Player _player;
     private Player _dealer;
     private bool _isGameOver;
-    private bool _playerWon;
-    private bool _isPush;
-    private bool _isPlayerTurn;
+    private Constants.Turn _turn;
     private bool _isHoleRevealed;
-
+    private bool _doubleDownUsed;
+    private Constants.WinResult _winResult;
+    
     public Game()
     {
         _deck = new Deck(Constants.DecksAmount);
         _player = new Player();
         _dealer = new Player();
         _isGameOver = false;
-        _playerWon = false;
-        _isPlayerTurn = true;
+        _turn = Constants.Turn.Player;
         _isHoleRevealed = false;
+        _doubleDownUsed = false;
     }
 
     public void Start()
@@ -27,16 +27,19 @@ class Game
         _deck.Shuffle();
         DealInitialCards();
         _dealer.hand.GetCards().Last().Visible = false;
-        CheckWin();
 
         while (!_isGameOver)
         {
-            if (!_isPlayerTurn)
+            if (_turn == Constants.Turn.Dealer)
             {
                 DealerTurn();
             }
 
-            CheckWin();
+            // First win-check after double down.
+            if (_doubleDownUsed && !_isGameOver)
+            {
+                CheckWin(Constants.WinScenario.DoubleDown);
+            }
 
             if (_isGameOver)
             {
@@ -45,6 +48,7 @@ class Game
 
             DisplayGameState();
             PlayerTurn();
+            CheckWin(Constants.WinScenario.Regular);
         }
 
         GameOver();
@@ -56,10 +60,10 @@ class Game
         _player = new Player();
         _dealer = new Player();
         _isGameOver = false;
-        _playerWon = false;
-        _isPush = false;
-        _isPlayerTurn = true;
+        _winResult = Constants.WinResult.None;
+        _turn = Constants.Turn.Player;
         _isHoleRevealed = false;
+        _doubleDownUsed = false;
 
         Console.Clear();
     }
@@ -80,115 +84,81 @@ class Game
         {
             RevealHoleCard();
             HitUntilMinimumOrMoreThanPlayer();
-            CheckAfterReveal();
+            CheckWin(Constants.WinScenario.Reveal);
         }
         else
         {
             _dealer.hand.AddCard(_deck.DealCard());
+            CheckWin(Constants.WinScenario.Regular);
         }
     }
 
     private void PlayerTurn()
     {
-        MakeChoice();
-    }
+        string choice = _player.MakeChoice(!_doubleDownUsed);
 
-    private void CheckWin()
-    {
-        int playerScore = _player.hand.CalculateScore();
-
-        if (playerScore == Constants.BlackJack)
+        if (Constants.StandChoices.Contains(choice))
         {
-            PlayerWin();
-            return;
+            _turn = Constants.Turn.Dealer;
         }
-
-        if (playerScore > Constants.BlackJack)
+        else if (Constants.HitChoices.Contains(choice))
         {
-            DealerWin();
-            return;
+            _player.hand.AddCard(_deck.DealCard());
         }
-
-        int dealerScore = _dealer.hand.CalculateScore();
-
-        if (dealerScore == Constants.BlackJack)
+        else if (Constants.DoubleDownChoices.Contains(choice))
         {
-            DealerWin();
-            return;
-        }
-
-        if (dealerScore > Constants.BlackJack)
-        {
-            PlayerWin();
-            return;
-        }
-
-        if (playerScore == dealerScore)
-        {
-            Push();
-            return;
+            // TODO: Double wager if any
+            _player.hand.AddCard(_deck.DealCard());
+            _doubleDownUsed = true;
+            _turn = Constants.Turn.Dealer;
         }
     }
 
-    private void CheckAfterReveal()
+    private void CheckWin(Constants.WinScenario scenario)
     {
-        bool dealerBust = _dealer.hand.IsBust();
-
-        if (dealerBust)
-        {
-            PlayerWin();
-            return;
-        }
-
-        int dealerScore = _dealer.hand.CalculateScore();
         int playerScore = _player.hand.CalculateScore();
+        int dealerScore = _dealer.hand.CalculateScore();
 
-        if (dealerScore > playerScore)
+        Constants.WinResult result = scenario switch
         {
-            DealerWin();
-            return;
-        }
-        else if (dealerScore < playerScore)
+            Constants.WinScenario.Regular => Win.CheckWin(playerScore, dealerScore),
+            Constants.WinScenario.DoubleDown => Win.CheckAfterDoubleDown(playerScore, dealerScore),
+            Constants.WinScenario.Reveal => Win.CheckAfterReveal(playerScore, dealerScore),
+            _ => throw new InvalidOperationException("Unexpected WinScenario")
+        };
+
+        Action? action = result switch
         {
-            PlayerWin();
-            return;
-        }
-        else if (playerScore == dealerScore)
-        {
-            Push();
-            return;
-        }
+            Constants.WinResult.Player => PlayerWin,
+            Constants.WinResult.Dealer => DealerWin,
+            Constants.WinResult.Push => Push,
+            Constants.WinResult.None => null,
+            _ => throw new InvalidOperationException("Unexpected WinResult")
+        };
+
+        action?.Invoke();
     }
 
     private void PlayerWin()
     {
         _isGameOver = true;
-        _playerWon = true;
-        _isPush = false;
+        _winResult = Constants.WinResult.Player;
     }
 
     private void DealerWin()
     {
         _isGameOver = true;
-        _playerWon = false;
-        _isPush = false;
+        _winResult = Constants.WinResult.Dealer;
     }
 
     private void Push()
     {
         _isGameOver = true;
-        _playerWon = false;
-        _isPush = true;
+        _winResult = Constants.WinResult.Push;
     }
-
 
     private void RevealHoleCard()
     {
-        if (_isHoleRevealed)
-        {
-            return;
-        }
-
         _dealer.hand.GetLastCard().Visible = true;
         _isHoleRevealed = true;
     }
@@ -209,67 +179,23 @@ class Game
         _dealer.hand.AddCard(_deck.DealCard());
     }
 
-    private void MakeChoice()
-    {
-        string choice = _player.MakeChoice();
-
-        if (Constants.StandChoices.Contains(choice))
-        {
-            _isPlayerTurn = false;
-        }
-        else if (Constants.HitChoices.Contains(choice))
-        {
-            _player.hand.AddCard(_deck.DealCard());
-        }
-    }
-
     private void DisplayGameState()
     {
         Console.Clear();
 
-        DisplayHand(_dealer.hand);
+        _dealer.hand.Display();
         Console.WriteLine($"Dealer's hand: {_dealer.hand.FormatedScore(false)}");
         Console.WriteLine();
 
         if (_isGameOver)
         {
             Console.WriteLine("[GAME OVER]");
-
-            if (_isPush)
-            {
-                Console.WriteLine("[PUSH]");
-            }
-            else
-            {
-                Console.WriteLine("[{0} WINS]", _playerWon ? "PLAYER" : "DEALER");
-            }
+            Console.WriteLine(Constants.ResultMessages[_winResult]);
         }
 
         Console.WriteLine();
         Console.WriteLine($"Your hand: {_player.hand.FormatedScore(false)}");
-        DisplayHand(_player.hand);
+        _player.hand.Display();
         Console.WriteLine();
-    }
-
-    private void DisplayHand(Hand hand)
-    {
-        List<string[]> rows = [];
-
-        foreach (Card card in hand.GetCards())
-        {
-            string[] row = card.GetCardRepresentation().Split(Environment.NewLine);
-            rows.Add(row);
-        }
-
-        for (int i = 0; i < Constants.CardHeight; i++)
-        {
-            foreach (var row in rows)
-            {
-                Console.Write(new string(' ', Constants.CardSpacingBetween));
-                Console.Write(row[i]);
-            }
-
-            Console.WriteLine();
-        }
     }
 }

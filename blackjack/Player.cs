@@ -4,14 +4,14 @@ namespace Blackjack;
 
 class Player
 {
-    public Hand hand {  get; set; }
+    public Hand hand { get; set; }
 
     public Player()
     {
         hand = new Hand();
     }
 
-    public string MakeChoice()
+    public string MakeChoice(bool canDoubleDown)
     {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -19,12 +19,23 @@ class Player
         stringBuilder.AppendJoin(", ", Constants.HitChoices);
         stringBuilder.Append("] or Stand [");
         stringBuilder.AppendJoin(", ", Constants.StandChoices);
+
+        if (canDoubleDown)
+        {
+            stringBuilder.Append("]");
+            stringBuilder.Append(" or Double Down [");
+            stringBuilder.AppendJoin(", ", Constants.DoubleDownChoices);
+        }
+
         stringBuilder.Append("]):");
 
         Console.WriteLine(stringBuilder.ToString());
 
         string? choice = Console.ReadLine();
-        string[] validChoices = Constants.HitChoices.Concat(Constants.StandChoices).ToArray();
+        string[] validChoices = Constants.HitChoices
+            .Concat(Constants.StandChoices)
+            .Concat(Constants.DoubleDownChoices)
+            .ToArray();
 
         while (choice == null || !validChoices.Contains(choice))
         {

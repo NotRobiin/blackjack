@@ -56,6 +56,28 @@ internal class Hand
         }
     }
 
+    public void Display()
+    {
+        List<string[]> rows = [];
+
+        foreach (Card card in GetCards())
+        {
+            string[] row = card.GetCardRepresentation().Split(Environment.NewLine);
+            rows.Add(row);
+        }
+
+        for (int i = 0; i < Constants.CardHeight; i++)
+        {
+            foreach (var row in rows)
+            {
+                Console.Write(new string(' ', Constants.CardSpacingBetween));
+                Console.Write(row[i]);
+            }
+
+            Console.WriteLine();
+        }
+    }
+
     private bool HasInvisibleCard() => _hand.Count(card => !card.Visible) > 0;
 
     private int GetVisibleAcesCount() => _hand.Count(card => card.Value == "A" && card.Visible);
