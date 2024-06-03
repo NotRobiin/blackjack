@@ -2,6 +2,14 @@
 
 class Constants
 {
+    public enum WinScenario
+    {
+        Initial,
+        Regular,
+        DoubleDown,
+        Reveal
+    };
+
     public enum WinResult
     {
         None,
@@ -10,22 +18,15 @@ class Constants
         Push
     };
 
-    public enum WinScenario
-    {
-        Regular,
-        DoubleDown,
-        Reveal
-    };
-
     public enum Turn
     {
         Player,
         Dealer
     };
-    
+
     public static readonly string[] CardSuits = { "Hearts", "Diamonds", "Clubs", "Spades" };
     public static readonly string[] CardValues = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
-    public static readonly Dictionary<string, int> CardIntValues = new Dictionary<string, int>
+    public static readonly Dictionary<string, int> CardValueToScore = new Dictionary<string, int>
     {
         { "2", 2 }, { "3", 3 }, { "4", 4 }, { "5", 5 }, { "6", 6 }, { "7", 7 },
         { "8", 8 }, { "9", 9 }, { "10", 10 }, { "J", 10 }, { "Q", 10 }, { "K", 10 }, { "A", 11 }

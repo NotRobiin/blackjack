@@ -15,7 +15,7 @@ public class Card
         Visible = true;
     }
 
-    public string GetCardRepresentation()
+    public string GetRepresentation()
     {
         string value = Visible ? Value : "?";
         string suit = Visible ? Suit : "?";

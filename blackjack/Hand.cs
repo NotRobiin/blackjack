@@ -23,7 +23,7 @@ internal class Hand
             : _hand.Count(card => card.Value == "A");
         int score = _hand.Where(card => includeInvisible || card.Visible)
                         .Where(card => card.Value != "A")
-                        .Sum(card => Constants.CardIntValues[card.Value]);
+                        .Sum(card => Constants.CardValueToScore[card.Value]);
 
         // Add Aces
         for (int i = 0; i < aceCount; i++)
@@ -38,14 +38,18 @@ internal class Hand
     {
         int score = CalculateScore(includeInvisible);
 
+        // Straight blackjack.
         if (score == Constants.BlackJack && _hand.Count == 2)
         {
             return "BLACKJACK";
         }
+        // Show Ace's l/h score when we get an Ace in initial cards.
+        // This protects from seeing the score-value of the 'hole' card.
         else if (_hand.Count == 2 && HasInvisibleCard() && _hand.First().Value == "A")
         {
             return $"{Constants.AceLow}/{Constants.AceHigh}";
         }
+        // Low / high (soft/hard) score when we have an Ace in hand.
         else if (GetVisibleAcesCount() > 0 && score + Constants.AceHigh - 1 <= Constants.BlackJack)
         {
             return $"{score}/{score + Constants.AceHigh - 1}";
@@ -62,7 +66,7 @@ internal class Hand
 
         foreach (Card card in GetCards())
         {
-            string[] row = card.GetCardRepresentation().Split(Environment.NewLine);
+            string[] row = card.GetRepresentation().Split(Environment.NewLine);
             rows.Add(row);
         }
 

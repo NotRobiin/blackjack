@@ -11,7 +11,7 @@ class Player
         hand = new Hand();
     }
 
-    public string MakeChoice(bool canDoubleDown)
+    public string MakeChoice(bool doubleDownAvailable)
     {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -20,7 +20,7 @@ class Player
         stringBuilder.Append("] or Stand [");
         stringBuilder.AppendJoin(", ", Constants.StandChoices);
 
-        if (canDoubleDown)
+        if (doubleDownAvailable)
         {
             stringBuilder.Append("]");
             stringBuilder.Append(" or Double Down [");

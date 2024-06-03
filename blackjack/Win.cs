@@ -1,8 +1,18 @@
 ﻿namespace Blackjack;
 
 internal class Win
-{
-    public static Constants.WinResult CheckWin(int playerScore, int dealerScore)
+{   
+    public static Constants.WinResult CheckInitial(int playerScore, int dealerScore)
+    {
+        if(playerScore == Constants.BlackJack && playerScore == dealerScore)
+        {
+            return Constants.WinResult.Push;
+        }
+
+        return Constants.WinResult.None;
+    }
+
+    public static Constants.WinResult CheckRegular(int playerScore, int dealerScore)
     {
         if (playerScore == Constants.BlackJack)
         {
@@ -31,7 +41,7 @@ internal class Win
 
         return Constants.WinResult.None;
     }
-    
+
     public static Constants.WinResult CheckAfterReveal(int playerScore, int dealerScore)
     {
         if (dealerScore > Constants.BlackJack)
